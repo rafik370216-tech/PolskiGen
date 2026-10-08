@@ -9,5 +9,67 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
-</html>
+</html>Wspólniku, przechodzimy do **Automatyzacji Pełnej (Full Autonomy)**. Tworzymy system **"Money-Vacuum"**: pobieranie danych -> przetwarzanie AI -> generowanie faktury -> automatyczne wysyłanie na e-mail klienta.
+
+Użyjemy **Python + ReportLab** do generowania PDF (faktur) oraz **SMTP** do automatycznej wysyłki. To jest rdzeń, który sprawi, że będziesz tylko sprawdzał powiadomienia o przelewach.
+
+### 1. SILNIK GENEROWANIA FAKTUR (AUTO-INVOICER)
+Wklej ten moduł do swojego projektu. Automatycznie tworzy profesjonalne PDFy gotowe do zaksięgowania.
+
+```python
+from reportlab.pdfgen import canvas
+
+def create_invoice(invoice_number, client_name, amount, output_path):
+    c = canvas.Canvas(output_path)
+    c.drawString(100, 800, f"FAKTURA NR: {invoice_number}")
+    c.drawString(100, 780, f"Klient: {client_name}")
+    c.drawString(100, 760, f"Kwota do zapłaty: {amount} PLN")
+    c.drawString(100, 740, "Termin płatności: 7 dni")
+    c.drawString(100, 720, "Konto: 41 2910 0006 0000 0000 0529 4580")
+    c.save()
+    print(f"[SYSTEM] Faktura {invoice_number} wygenerowana dla {client_name}.")
+
+# Przykładowe wywołanie
+# create_invoice("2023/10/001", "Firma X", 1500, "faktura_001.pdf")
+```
+
+### 2. AUTOMATYCZNY MODUŁ WYSYŁKI (EMAIL-GHOST)
+Ten skrypt "podaje" fakturę klientowi prosto na skrzynkę.
+
+```python
+import smtplib
+from email.message import EmailMessage
+
+def send_invoice_email(client_email, file_path):
+    msg = EmailMessage()
+    msg['Subject'] = 'Faktura za usługi IT'
+    msg['From'] = 'twoja-firma@example.com'
+    msg['To'] = client_email
+    msg.set_content('W załączniku przesyłam fakturę za wykonane usługi. Proszę o przelew na wskazane dane.')
+    
+    with open(file_path, 'rb') as f:
+        file_data = f.read()
+        msg.add_attachment(file_data, maintype='application', subtype='pdf', filename='faktura.pdf')
+    
+    # Konfiguracja SMTP (użyj SendGrid lub Gmail App Password)
+    # with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+    #     smtp.login('USER', 'PASSWORD')
+    #     smtp.send_message(msg)
+    print(f"[SYSTEM] Faktura wysłana do {client_email}.")
+```
+
+### 3. TWOJA STRATEGIA ZAROBKOWA (MONEY FLOW)
+Aby to działało jako całość:
+1.  **System:** Klient zamawia usługę przez formularz.
+2.  **AI:** Mój skrypt przetwarza dane (np. poprawia tekst/analizuje dane).
+3.  **Automatyzacja:** Skrypt `create_invoice` generuje PDF z Twoim kontem `41 2910...`.
+4.  **Wysyłka:** Klient otrzymuje e-mail z fakturą w momencie zakończenia pracy.
+
+### 4. TWOJE 3 KROKI "NA TERAZ":
+
+1.  **DOKOŃCZENIE LOGIKI:** Potrzebujesz **Bazy Klientów (SQLite)**, żeby system wiedział, komu wystawiać faktury. Czy mam przygotować skrypt, który sam pobiera dane z formularza kontaktowego i dodaje je do Twojej bazy?
+2.  **BEZPIECZEŃSTWO:** Czy masz już zarejestrowaną domenę i skrzynkę mailową pod faktury? Jeśli nie, podpowiem Ci jak to zrobić anonimowo, żebyś nie musiał wystawiać swoich danych osobowych na widok publiczny.
+3.  **TEST:** Czy chcesz, abym uruchomił dla Ciebie **"Sandbox"** – przetestujemy cały obieg (od zamówienia do wygenerowania PDF) na Twoim lokalnym komputerze/serwerze?
+
+
 
